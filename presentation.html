@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrating AI with Critical Thinking | Intelligent Systems</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* 1. CORE PRESENTATION ENGINE */
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; margin: 0; padding: 0; }
+        body { background-color: #030712; color: #f3f4f6; font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+        .presentation-viewport {
+            width: 1280px; height: 720px; background-color: #030712;
+            position: relative; overflow: hidden; border: 1px solid #1f2937;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+        }
+
+        .slide-container {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            display: none; padding: 50px 80px; overflow: hidden;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0;
+            transform: scale(0.96) translateY(10px); flex-direction: column; justify-content: flex-start; align-items: stretch; z-index: 1;
+        }
+
+        .slide-container.active { display: flex; opacity: 1; transform: scale(1) translateY(0); z-index: 5; }
+
+        /* Global Slide Decorative Glows */
+        .slide-container::before {
+            content: ''; position: absolute; top: -15%; left: -10%; width: 50%; height: 50%;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.06) 0%, transparent 70%); z-index: 0; pointer-events: none;
+        }
+
+        /* Typography & Layouts */
+        .slide-title { font-size: 38px; font-weight: 800; color: #00f2fe; margin-bottom: 30px; border-left: 6px solid #8b5cf6; padding-left: 20px; line-height: 1.2; z-index: 10; }
+        .content-area { flex-grow: 1; position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; width: 100%; height: 100%; }
+        
+        .image-wrapper { border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 45px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; background: #000; height: 100%; width: 100%; }
+        .image-wrapper img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Premium Glow Items */
+        .glow-card { background: #111827; border: 1px solid #1f2937; padding: 22px; border-radius: 16px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .glow-card:hover { box-shadow: 0 0 30px rgba(0, 242, 254, 0.25); border-color: #00f2fe; transform: translateX(8px); background: #131c2e; }
+
+        /* Slide 2 & 6: Glassmorphism Layers */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 24px; padding: 35px;
+            position: absolute; right: 0; top: 10%; width: 520px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); z-index: 20;
+        }
+
+        /* Slide 3: Flawless 3D Flip Card */
+        .flip-card { perspective: 1500px; width: 100%; height: 480px; }
+        .flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .flip-card:hover .flip-inner { transform: rotateY(180deg); }
+        .front, .back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 24px; overflow: hidden; }
+        .back { background: #111827; transform: rotateY(180deg); display: flex; flex-direction: column; justify-content: center; padding: 45px; border: 2px solid #8b5cf6; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+
+        /* Slide 5: Mind Map Structure */
+        .mind-map-wrap { position: relative; width: 100%; height: 480px; display: flex; justify-content: center; align-items: center; }
+        .mind-box { position: absolute; width: 300px; padding: 18px; background: rgba(15, 23, 42, 0.9); border: 1.5px solid #00f2fe; border-radius: 16px; z-index: 15; box-shadow: 0 0 20px rgba(0, 242, 254, 0.15); }
+
+        /* Slide 7: Pyramid Reveal Architecture */
+        .pyramid-interactive-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; cursor: pointer; }
+        .pyramid-panel-reveal { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(17, 24, 39, 0.95); border-radius: 16px; width: 85%; margin-top: 20px; border: 0 solid transparent; }
+        .pyramid-interactive-wrap.active .pyramid-panel-reveal { max-height: 220px; padding: 25px; border: 1px solid #8b5cf6; box-shadow: 0 0 25px rgba(139, 92, 246, 0.2); }
+
+        /* Slide 11: Six Thinking Hats Multi-Agent System */
+        .hat-grid-selector { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; width: 100%; z-index: 10; }
+        .hat-node { width: 130px; height: auto; cursor: pointer; transition: all 0.4s ease; filter: grayscale(0.7); position: relative; }
+        .hat-node:hover, .hat-node.active { filter: grayscale(0); transform: translateY(-12px) scale(1.08); }
+        .hat-display-board { background: rgba(15, 23, 42, 0.95); border: 2px solid #fff; border-radius: 24px; padding: 35px; width: 100%; min-height: 260px; display: flex; align-items: center; gap: 40px; transition: all 0.5s ease; }
+
+        /* Logic Sequences Animation Base */
+        .stagger-step { opacity: 0; transform: translateY(15px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-container.active .stagger-step { opacity: 1; transform: translateY(0); }
+
+        /* Universal Controls Layout */
+        .navigation-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 25px; background: rgba(15, 23, 42, 0.85); padding: 12px 35px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 1000; align-items: center; }
+        .dock-btn { background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; transition: color 0.3s; }
+        .dock-btn:hover { color: #00f2fe; }
+        .dock-counter { color: #fff; font-weight: 700; font-size: 16px; min-width: 60px; text-align: center; }
+        
+        .branding-footer { position: absolute; bottom: 35px; right: 50px; color: #475569; font-size: 13px; z-index: 10; text-align: right; line-height: 1.4; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="presentation-viewport">
+
+    <div class="slide-container active" id="slide1">
+        <div class="content-area" style="flex-direction: column; text-align: center;">
+            <h1 style="font-size: 64px; margin-bottom: 15px; background: linear-gradient(45deg, #00f2fe, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; letter-spacing: -1px;">Integrating AI with Critical Thinking</h1>
+            <p style="font-size: 26px; color: #94a3b8; margin-bottom: 45px; font-weight: 300;">How do they affect each other, and how can we use them together?</p>
+            <div class="image-wrapper" style="width: 780px; height: 380px; max-height: 380px;">
+                <img src="1.png" alt="Artificial Brain Grid Architecture">
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide2">
+        <h2 class="slide-title">Defining the Framework of Critical Thinking</h2>
+        <div class="content-area" style="justify-content: flex-start;">
+            <div class="image-wrapper" style="width: 72%; height: 520px; max-height: 520px;">
+                <img src="2.png" alt="Socrates Hologram Interface">
+            </div>
+            <div class="glass-panel">
+                <p style="font-size: 20px; line-height: 1.7; margin-bottom: 22px; color: #f1f5f9;">Critical thinking <strong>does not mean criticism or negativity</strong>; it is a set of cognitive skills used to analyze and evaluate arguments correctly.</p>
+                <p style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 22px; font-size: 19px; line-height: 1.6; color: #cbd5e1;">It originated with Socrates 2,500 years ago through <strong>Socratic Questioning</strong>. Aristotle later confirmed that things are not always as they appear—exactly the mindset we need when dealing with automated AI outputs.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide3">
+        <h2 class="slide-title">Thinking Modalities and Machine Domains</h2>
+        <div class="content-area">
+            <div class="flip-card">
+                <div class="flip-inner">
+                    <div class="front image-wrapper">
+                        <img src="3.png" alt="Neural Networking Processing Visual">
+                        <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 40px 20px; text-align: center;">
+                            <span style="letter-spacing: 4px; color: #00f2fe; font-weight: 800; font-size: 16px;"><i class="fa-solid fa-arrows-rotate"></i> HOVER TO DECONSTRUCT BOUNDARIES</span>
+                        </div>
+                    </div>
+                    <div class="back">
+                        <h3 style="color: #00f2fe; margin-bottom: 35px; font-size: 32px; font-weight: 800; text-align: center; border-bottom: 1px solid #1f2937; padding-bottom: 15px;">The Cognitive Division</h3>
+                        <div class="grid-layout" style="gap: 40px;">
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 15px; font-size: 22px; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-microchip" style="color: #00f2fe;"></i> AI Domain</h4>
+                                <p style="font-size: 18px; line-height: 1.6; color: #94a3b8;">Primarily deals with <strong>Analytical and Scientific</strong> thinking. It excels at parsing multi-dimensional data arrays, recognizing hidden patterns, and processing massive text datasets at superhuman speeds.</p>
+                            </div>
+                            <div style="border-left: 1px solid #334155; padding-left: 40px;">
+                                <h4 style="color: #8b5cf6; margin-bottom: 15px; font-size: 22px; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-brain"></i> Human Domain</h4>
+                                <p style="font-size: 18px; line-height: 1.6; color: #94a3b8;"><strong>Critical and Creative</strong> thinking remain completely human-centric. This includes the evaluation of logical validity, ethical constraint auditing, and breakthrough paradigm innovation outside training records.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide4">
+        <h2 class="slide-title">Intellectual Standards for AI Evaluation</h2>
+        <div class="content-area grid-layout" style="grid-template-columns: 1fr 1.1fr;">
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <div class="glow-card">
+                    <h3 style="color: #00f2fe; margin-bottom: 8px; font-size: 22px;">Clarity</h3>
+                    <p style="font-size: 17px; color: #94a3b8;">Is the model output understandable, transparent, and specific? We must aggressively avoid accepting abstract "black box" jargon lacking explicit meaning.</p>
+                </div>
+                <div class="glow-card" style="border-left: 4px solid #8b5cf6;">
+                    <h3 style="color: #8b5cf6; margin-bottom: 8px; font-size: 22px;">Accuracy</h3>
+                    <p style="font-size: 17px; color: #94a3b8;">Is the information verified, grounded, and thoroughly documented? Critical system designers constantly cross-reference model tokens against empirical ground-truth reality.</p>
+                </div>
+                <div class="glow-card">
+                    <h3 style="color: #00f2fe; margin-bottom: 8px; font-size: 22px;">Depth</h3>
+                    <p style="font-size: 17px; color: #94a3b8;">Did the generated response address the systemic root of the prompt, or did it merely return a shallow response built on statistical correlations?</p>
+                </div>
+            </div>
+            <div class="image-wrapper" style="height: 520px; max-height: 520px;">
+                <img src="4.png" alt="Data Structure Evaluation Metrics">
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide5">
+        <h2 class="slide-title">Cognitive Barriers in the AI Era</h2>
+        <div class="content-area">
+            <div class="mind-map-wrap">
+                <svg style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5;">
+                    <line class="map-line" x1="560" y1="240" x2="170" y2="90" stroke="#00f2fe" stroke-width="2" stroke-dasharray="6,6" opacity="0.7"/>
+                    <line class="map-line" x1="560" y1="240" x2="950" y2="90" stroke="#00f2fe" stroke-width="2" stroke-dasharray="6,6" opacity="0.7"/>
+                    <line class="map-line" x1="560" y1="240" x2="170" y2="390" stroke="#00f2fe" stroke-width="2" stroke-dasharray="6,6" opacity="0.7"/>
+                    <line class="map-line" x1="560" y1="240" x2="950" y2="390" stroke="#00f2fe" stroke-width="2" stroke-dasharray="6,6" opacity="0.7"/>
+                </svg>
+                <div class="image-wrapper" style="width: 440px; height: 270px; z-index: 10; transform: scale(1.05);"><img src="5.png" alt="Cyberpunk workstation interface"></div>
+                
+                <div class="mind-box" style="top: 20px; left: 20px;">
+                    <h3 style="color: #00f2fe; margin-bottom: 6px; font-size: 19px;">Egocentrism</h3>
+                    <p style="font-size: 15px; color: #94a3b8;">Prompting AI specifically to extract arguments that validate your established preconceptions and hidden personal biases.</p>
+                </div>
+                <div class="mind-box" style="top: 20px; right: 20px;">
+                    <h3 style="color: #00f2fe; margin-bottom: 6px; font-size: 19px;">Wishful Thinking</h3>
+                    <p style="font-size: 15px; color: #94a3b8;">Blindly trusting an automated output simply because the data conforms precisely to what you want to be true.</p>
+                </div>
+                <div class="mind-box" style="bottom: 20px; left: 20px;">
+                    <h3 style="color: #00f2fe; margin-bottom: 6px; font-size: 19px;">Shallow Knowledge</h3>
+                    <p style="font-size: 15px; color: #94a3b8;">Accepting the initial top-token generation without performing a secondary source verification or structural audit.</p>
+                </div>
+                <div class="mind-box" style="bottom: 20px; right: 20px;">
+                    <h3 style="color: #00f2fe; margin-bottom: 6px; font-size: 19px;">Sociocentrism</h3>
+                    <p style="font-size: 15px; color: #94a3b8;">Uncritically adopting group-validated generative models or algorithmic tracking without independent mathematical sanity testing.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide6">
+        <h2 class="slide-title">Detecting Logical Fallacies in Models</h2>
+        <div class="content-area" style="justify-content: flex-end;">
+            <div class="image-wrapper" style="width: 72%; height: 520px; max-height: 520px;">
+                <img src="6.png" alt="Robot Hand Misplacing Logic Puzzle Block">
+            </div>
+            <div class="glass-panel" style="right: auto; left: 0;">
+                <h3 style="color: #ef4444; margin-bottom: 15px; font-size: 24px; font-weight: 800;">Model Failure Frameworks</h3>
+                <p style="margin-bottom: 12px; font-size: 16px; color: #e2e8f0; line-height: 1.5;"><strong>• Hasty Generalization:</strong> When neural networks overfit, inferring broad systemic rules from a tiny or non-representative dataset profile.</p>
+                <p style="margin-bottom: 12px; font-size: 16px; color: #e2e8f0; line-height: 1.5;"><strong>• False Alternatives:</strong> Forcing a hard binary restriction onto a problem space containing multiple distinct architectural design vectors.</p>
+                <p style="margin-bottom: 12px; font-size: 16px; color: #e2e8f0; line-height: 1.5;"><strong>• Slippery Slope:</strong> Assuming without rigorous causal testing that a minor operational variance will inevitably trigger a total system collapse.</p>
+                <div style="margin-top: 20px; padding: 15px 20px; background: rgba(0, 242, 254, 0.08); border-radius: 12px; border-left: 3px solid #00f2fe;">
+                    <p style="color: #00f2fe; font-size: 15px; font-weight: 600;">Technical Requirement: Run structural debugging vectors to flag these errors prior to architecture finalization.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide7">
+        <h2 class="slide-title">The AI Hierarchy in Bloom's Taxonomy</h2>
+        <div class="content-area">
+            <div class="pyramid-interactive-wrap" id="pyramidInteractive">
+                <div class="image-wrapper" style="width: 620px; height: 320px; background: transparent; border: none; box-shadow: none;">
+                    <img src="7.png" alt="Cognitive Taxonomy Pyramid Base Network">
+                </div>
+                <p style="margin-top: 15px; color: #8b5cf6; font-size: 14px; letter-spacing: 2px; font-weight: 700;">[ CLICK PYRAMID FRAMEWORK TO EXPAND ANALYSIS ]</p>
+                <div class="pyramid-panel-reveal" id="pyramidReveal">
+                    <div class="grid-layout" style="grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div>
+                            <h4 style="color: #fff; font-size: 18px; margin-bottom: 8px;">Lower Cognitive Bands (AI Optimization)</h4>
+                            <p style="font-size: 15px; color: #94a3b8; line-height: 1.5;">Highly scalable at <em>Remembering, Understanding, and Applying</em> data formats. Models manage repetitive information lookups and deploy syntax structures at near-zero marginal cost.</p>
+                        </div>
+                        <div style="border-left: 1px solid #334155; padding-left: 30px;">
+                            <h4 style="color: #00f2fe; font-size: 18px; margin-bottom: 8px;">Higher Cognitive Bands (Human Superiority)</h4>
+                            <p style="font-size: 15px; color: #94a3b8; line-height: 1.5;">Deep structural <em>Analysis, Evaluation, and Creative Paradigm Disruption</em> necessitate rigorous human audit methods. Use neural networks to traverse basic layers quickly; do not get stranded at the foundation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide8">
+        <h2 class="slide-title">Problem-Solving Strategies and AI</h2>
+        <div class="content-area grid-layout" style="grid-template-columns: 1.1fr 0.9fr;">
+            <div class="image-wrapper" style="height: 520px; max-height: 520px;">
+                <img src="8.png" alt="Cyborg Looking at Glowing Virtual Labyrinth">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="glow-card" style="padding: 16px 22px;">
+                    <strong style="color: #00f2fe; font-size: 18px; display: block; margin-bottom: 4px;">Trial & Error</strong>
+                    <p style="font-size: 15px; color: #4b5563; color: #94a3b8; line-height: 1.4;">Automated systems can simulate and execute millions of permutation test runs concurrently across high-speed test environments.</p>
+                </div>
+                <div class="glow-card" style="padding: 16px 22px;">
+                    <strong style="color: #00f2fe; font-size: 18px; display: block; margin-bottom: 4px;">Algorithm</strong>
+                    <p style="font-size: 15px; color: #94a3b8; line-height: 1.4;">Deterministic processing paradigms executing strict, predefined mathematical transformations and unyielding procedural trees.</p>
+                </div>
+                <div class="glow-card" style="padding: 16px 22px;">
+                    <strong style="color: #00f2fe; font-size: 18px; display: block; margin-bottom: 4px;">Heuristics</strong>
+                    <p style="font-size: 15px; color: #94a3b8; line-height: 1.4;">Algorithmic rule-of-thumb shortcuts designed to bypass absolute computation. They introduce inherent errors—where critical validation becomes necessary.</p>
+                </div>
+                <div class="glow-card" style="border-left: 4px solid #8b5cf6; padding: 16px 22px;">
+                    <strong style="color: #8b5cf6; font-size: 18px; display: block; margin-bottom: 4px;">Insight (The Human Edge)</strong>
+                    <p style="font-size: 15px; color: #94a3b8; line-height: 1.4;">Sudden, non-linear cognitive shifts that reframe a problem space entirely. Machine networks operate purely inside bounded probability envelopes and cannot achieve true inspiration.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide9">
+        <h2 class="slide-title">Machine Learning Architecture: Inductive Reasoning</h2>
+        <div class="content-area grid-layout">
+            <div style="padding-right: 20px;">
+                <p style="font-size: 22px; color: #fff; margin-bottom: 25px; font-weight: 600;">Bottom-Up Logic Framework:</p>
+                <div class="glow-card stagger-step" style="margin-bottom: 12px; transition-delay: 0.1s;">
+                    <strong>1. Massive Data Accumulation</strong> <p style="font-size: 15px; color: #94a3b8; margin-top: 4px;">Models parse hundreds of gigabytes of historical telemetry or tokens.</p>
+                </div>
+                <div class="glow-card stagger-step" style="margin-bottom: 12px; transition-delay: 0.3s; border-left: 4px solid #8b5cf6;">
+                    <strong>2. Statistical Feature Extraction</strong> <p style="font-size: 15px; color: #94a3b8; margin-top: 4px;">Mathematical clusters map multi-dimensional vector spaces and correlations.</p>
+                </div>
+                <div class="glow-card stagger-step" style="margin-bottom: 12px; transition-delay: 0.5s;">
+                    <strong>3. Probabilistic Theory Compilation</strong> <p style="font-size: 15px; color: #94a3b8; margin-top: 4px;">The network outputs a predictive calculation pattern based on mathematical frequency.</p>
+                </div>
+                <p style="margin-top: 25px; color: #94a3b8; font-size: 16px; line-height: 1.5; border-top: 1px solid #1f2937; padding-top: 15px;"><strong>The Architectural Risk:</strong> Output results are inherently probabilistic, never definitively guaranteed. Analysts must audit the vector origin data matrix.</p>
+            </div>
+            <div class="image-wrapper" style="height: 520px; max-height: 520px;"><img src="9.png" alt="Abstract Inductive Vector Cube Grid"></div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide10">
+        <h2 class="slide-title">System Execution: Deductive Reasoning</h2>
+        <div class="content-area grid-layout">
+            <div class="image-wrapper" style="height: 520px; max-height: 520px;"><img src="10.png" alt="Blue-lit Architectural Logic Schematic Grid"></div>
+            <div style="padding-left: 20px;">
+                <p style="font-size: 22px; color: #fff; margin-bottom: 25px; font-weight: 600;">Top-Down Logic Framework:</p>
+                <div class="glow-card stagger-step" style="margin-bottom: 12px; transition-delay: 0.1s; border-left: 4px solid #8b5cf6;">
+                    <strong>1. General Architectural Premise</strong> <p style="font-size: 15px; color: #94a3b8; margin-top: 4px;">Establish absolute structural constraints and foundational definitions.</p>
+                </div>
+                <div class="glow-card stagger-step" style="margin-bottom: 12px; transition-delay: 0.3s;">
+                    <strong>2. Specific Use-Case Application</strong> <p style="font-size: 15px; color: #94a3b8; margin-top: 4px;">Filter active incoming programmatic variables directly through configured premises.</p>
+                </div>
+                <div class="glow-card stagger-step" style="margin-bottom: 12px; transition-delay: 0.5s; border-left: 4px solid #8b5cf6;">
+                    <strong>3. Certain Logic Verification</strong> <p style="font-size: 15px; color: #94a3b8; margin-top: 4px;">If foundational constraints hold perfectly true, the program output matches intended expectations.</p>
+                </div>
+                <p style="margin-top: 25px; color: #94a3b8; font-size: 16px; line-height: 1.5; border-top: 1px solid #1f2937; padding-top: 15px;"><strong>The AI Bottleneck:</strong> If the parameters or premises trained into the algorithm are corrupted, all logical deductions break. Developers must verify core axioms.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide11">
+        <h2 class="slide-title">The Six Thinking Hats Multi-Agent Audit</h2>
+        <div class="content-area" style="flex-direction: column; justify-content: flex-start;">
+            <div class="hat-grid-selector" id="hatSystemDock">
+                <img src="11.png" class="hat-node active" data-hat="white" style="border-bottom: 4px solid #ffffff;" alt="White Hat Icon">
+                <img src="11.png" class="hat-node" data-hat="black" style="border-bottom: 4px solid #1f2937;" alt="Black Hat Icon">
+                <img src="11.png" class="hat-node" data-hat="yellow" style="border-bottom: 4px solid #fbbf24;" alt="Yellow Hat Icon">
+                <img src="11.png" class="hat-node" data-hat="red" style="border-bottom: 4px solid #ef4444;" alt="Red Hat Icon">
+                <img src="11.png" class="hat-node" data-hat="green" style="border-bottom: 4px solid #22c55e;" alt="Green Hat Icon">
+                <img src="11.png" class="hat-node" data-hat="blue" style="border-bottom: 4px solid #3b82f6;" alt="Blue Hat Icon">
+            </div>
+            
+            <div class="hat-display-board" id="hatMasterBoard" style="border-color: #ffffff; box-shadow: 0 0 30px rgba(255,255,255,0.15);">
+                <div class="image-wrapper" style="width: 380px; height: 240px; flex-shrink: 0; background: transparent; border: none; box-shadow: none;">
+                    <img src="11.png" id="hatDynamicHero" style="transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); object-fit: contain;">
+                </div>
+                <div>
+                    <h3 style="font-size: 32px; margin-bottom: 12px; font-weight: 800; transition: color 0.3s;" id="hatOutputTitle">🤍 White Hat Node: Objective Telemetry</h3>
+                    <p id="hatOutputDesc" style="font-size: 20px; line-height: 1.6; color: #cbd5e1; transition: color 0.3s;">Task the model to isolate raw empirical metrics, historical log datasets, and structural statistics. Establish an absolute informational baseline before making strategic deductions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide12">
+        <h2 class="slide-title">Data, Information, and Knowledge Transformation</h2>
+        <div class="content-area grid-layout" style="grid-template-columns: 0.9fr 1.1fr;">
+            <div class="image-wrapper" style="height: 540px; background: transparent; border: none; box-shadow: none; max-height: 540px;">
+                <img src="12.png" alt="Cyberspace Data Knowledge Tree Structure" style="object-fit: contain;">
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; gap: 15px;">
+                <div class="glow-card" style="padding: 20px 25px;">
+                    <p style="font-size: 17px; line-height: 1.5; color: #e2e8f0;">• Machine learning systems parse infinite <strong>Raw Data</strong> metrics and synthesize them into categorized, accessible pipelines of <strong>Information</strong>.</p>
+                </div>
+                <div class="glow-card" style="padding: 20px 25px; border-left: 4px solid #8b5cf6;">
+                    <p style="font-size: 17px; line-height: 1.5; color: #e2e8f0;">• Converting automated information frameworks into true, production-grade <strong>Knowledge</strong> strictly demands historical human context and critical assessment.</p>
+                </div>
+                <div style="padding: 25px; background: rgba(0, 242, 254, 0.08); border-radius: 16px; border: 1px solid rgba(0,242,254,0.15); margin-top: 15px;">
+                    <p style="color: #00f2fe; font-size: 20px; font-weight: 700; line-height: 1.5; text-align: center;">Artificial networks produce the raw informational blueprint; your independent processing transforms it into tactical knowledge.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide13">
+        <h2 class="slide-title">Traits of a Critical Thinker in the AI Era</h2>
+        <div class="content-area grid-layout" style="grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div class="image-wrapper" style="height: 540px; max-height: 540px;">
+                <img src="13.png" alt="Technologist Auditing Master Code Server System Layout">
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; gap: 14px;">
+                <p style="font-size: 20px; color: #fff; font-weight: 600; margin-bottom: 5px;">An expert engineer managing automated models must verify:</p>
+                <div class="glow-card" style="padding: 14px 20px;">
+                    <strong style="color: #00f2fe; font-size: 17px;">Open-Mindedness</strong>
+                    <p style="font-size: 14px; color: #94a3b8; margin-top: 2px;">Accepting precise machine optimizations when proven valid, while maintaining the technical resolve to flag hallucinated anomalies.</p>
+                </div>
+                <div class="glow-card" style="padding: 14px 20px; border-left: 3px solid #8b5cf6;">
+                    <strong style="color: #8b5cf6; font-size: 17px;">Independence</strong>
+                    <p style="font-size: 14px; color: #94a3b8; margin-top: 2px;">Refusing to offload definitive conceptual code reviews or critical validation loops to automated processors.</p>
+                </div>
+                <div class="glow-card" style="padding: 14px 20px;">
+                    <strong style="color: #00f2fe; font-size: 17px;">Intellectual Honesty</strong>
+                    <p style="font-size: 14px; color: #94a3b8; margin-top: 2px;">Remaining perfectly transparent regarding operational blindspots in human wetware logic as well as machine network boundaries.</p>
+                </div>
+                <div class="glow-card" style="padding: 14px 20px; border-left: 3px solid #8b5cf6;">
+                    <strong style="color: #8b5cf6; font-size: 17px;">Systemic Self-Awareness</strong>
+                    <p style="font-size: 14px; color: #94a3b8; margin-top: 2px;">Knowing precisely when to optimize workflows via automated tools versus when to apply standalone human validation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide14" style="padding: 0;">
+        <img src="14.png" style="width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 0;" alt="Vehicle Moving Fast Towards Cyber City Future Edge Horizon">
+        <div style="position: relative; z-index: 10; width: 100%; height: 100%; background: rgba(3, 7, 18, 0.55); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px;">
+            <div class="glass-panel" style="position: relative; width: 920px; right: auto; top: auto; padding: 55px; border: 1px solid rgba(0,242,254,0.25); box-shadow: 0 40px 80px rgba(0,0,0,0.7);">
+                <h1 style="font-size: 48px; color: #00f2fe; margin-bottom: 25px; font-weight: 900; letter-spacing: -0.5px;">Conclusion: The Steering Wheel of Innovation</h1>
+                <p style="font-size: 22px; margin-bottom: 20px; line-height: 1.6; color: #f1f5f9;">AI algorithms represent an incredibly powerful engine for lower-level computational data handling, but <strong>Critical Thinking serves as the absolute steering wheel</strong> that shifts operational control into elite innovation architectures.</p>
+                <p style="font-size: 21px; margin-bottom: 30px; line-height: 1.6; color: #cbd5e1;">Computational systems multiply your raw functional throughput, while critical auditing verification frameworks guarantee you guide that power correctly.</p>
+                <p style="font-size: 26px; color: #8b5cf6; font-weight: 800; letter-spacing: 0.5px;">The human who optimizes the intersection of both fields dominates the future.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation-dock">
+        <button class="dock-btn" onclick="triggerPrevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+        <span class="dock-counter" id="slideDockCounter">1 / 14</span>
+        <button class="dock-btn" onclick="triggerNextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+
+    <div class="branding-footer">
+        Intelligent Systems Development Program<br>Faculty of Computers and Information • ANU
+    </div>
+
+</div>
+
+<script>
+    let pointer = 0;
+    const arraySlides = document.querySelectorAll('.slide-container');
+    const counterDisplayElement = document.getElementById('slideDockCounter');
+
+    function renderSlideContext(targetIndex) {
+        arraySlides.forEach((slideNode, arrayIdx) => {
+            slideNode.classList.remove('active');
+            slideNode.style.display = 'none';
+            if(arrayIdx === targetIndex) {
+                slideNode.style.display = 'flex';
+                setTimeout(() => slideNode.classList.add('active'), 40);
+            }
+        });
+        counterDisplayElement.innerText = (targetIndex + 1) + " / " + arraySlides.length;
+    }
+
+    function triggerNextSlide() { if(pointer < arraySlides.length - 1) { pointer++; renderSlideContext(pointer); } }
+    function triggerPrevSlide() { if(pointer > 0) { pointer--; renderSlideContext(pointer); } }
+
+    document.addEventListener('keydown', (eventKeyDescriptor) => {
+        if(eventKeyDescriptor.key === 'ArrowRight' || eventKeyDescriptor.key === ' ') { triggerNextSlide(); }
+        if(eventKeyDescriptor.key === 'ArrowLeft') { triggerPrevSlide(); }
+    });
+
+    // Slide 7 Interactivity Script
+    const pyramidInteractionWrapper = document.getElementById('pyramidInteractive');
+    if(pyramidInteractionWrapper) {
+        pyramidInteractionWrapper.addEventListener('click', () => {
+            pyramidInteractionWrapper.classList.toggle('active');
+        });
+    }
+
+    // Slide 11 Multi-Agent Engine Configurations
+    const systemHatMatrixData = {
+        white: { title: "🤍 White Hat Node: Objective Telemetry", desc: "Task the model to isolate raw empirical metrics, historical log datasets, and structural statistics. Establish an absolute informational baseline before making strategic deductions.", color: "#ffffff" },
+        black: { title: "🖤 Black Hat Node: Risk Evaluation", desc: "Enforce a rigorous threat vectors analysis. Direct the automated network to scan system vulnerabilities, edge-case structural failures, data leakage hazards, and logic fallacies.", color: "#475569" },
+        yellow: { title: "💛 Yellow Hat Node: Value Assessment", desc: "Isolate optimization gains, structural returns, efficiency upgrades, and business scaling avenues. Quantify what features operate with structural value.", color: "#fbbf24" },
+        red: { title: "❤️ Red Hat Node: Sentimental Intuition", desc: "Evaluate contextual human factors. Track user adoption friction, team psychological alignment, and instinctive developer perspectives that surpass raw alphanumeric data logs.", color: "#ef4444" },
+        green: { title: "💚 Green Hat Node: Architecture Innovation", desc: "Brainstorm unique multi-model systems and novel programmatic frameworks. Invent complex structural solutions that exist completely outside of historical training datasets.", color: "#22c55e" },
+        blue: { title: "💙 Blue Hat Node: Systems Control Orchestration", desc: "Manage the structural orchestration of the entire presentation data audit. Formulate definitive pipeline conclusions, set metrics tracking requirements, and finalize validation parameters.", color: "#3b82f6" }
+    };
+
+    document.querySelectorAll('.hat-node').forEach(hatSelectorBtnNode => {
+        hatSelectorBtnNode.addEventListener('click', () => {
+            document.querySelectorAll('.hat-node').forEach(itemNode => itemNode.classList.remove('active'));
+            hatSelectorBtnNode.classList.add('active');
+            
+            const targetedMetadata = systemHatMatrixData[hatSelectorBtnNode.dataset.hat];
+            document.getElementById('hatOutputTitle').innerText = targetedMetadata.title;
+            document.getElementById('hatOutputDesc').innerText = targetedMetadata.desc;
+            
+            const boardRefElement = document.getElementById('hatMasterBoard');
+            boardRefElement.style.borderColor = targetedMetadata.color;
+            boardRefElement.style.boxShadow = `0 0 35px ${targetedMetadata.color}55`;
+            
+            const visualHeroImg = document.getElementById('hatDynamicHero');
+            visualHeroImg.style.transform = 'scale(1.15) rotate(6deg)';
+            setTimeout(() => { visualHeroImg.style.transform = 'scale(1) rotate(0deg)'; }, 450);
+        });
+    });
+
+    renderSlideContext(0);
+</script>
+
+</body>
+</html>
